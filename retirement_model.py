@@ -88,3 +88,95 @@ class RetirementModel:
         exact_p = numerator / denominator
 
         return exact_p
+
+    def run_vectorized_mc(self, p, sw_start, sw_end, qu, qd, pu, initial_salary=1000, num_sims=10000, seed=0):
+        rng = np.random.default_rng(seed)
+
+        capital = np.zeros(num_sims)
+        current_salary = np.full(num_sims, initial_salary, dtype=float)
+
+        years_working = self.months_working // 12
+        years_retired = self.months_retired // 12
+
+        glide_path = np.linspace(sw_start, sw_end, years_working)
+
+        for year in range(years_working):
+            sw = glide_path[year]
+
+            is_up_market = rng.random(num_sims) < pu
+            annual_stock_return = np.where(is_up_market, qu, qd)
+
+            annual_portfolio_return = (
+                sw * annual_stock_return) + ((1 - sw) * self.bond_return)
+            monthly_portfolio_return = (
+                1 + annual_portfolio_return)**(1/12) - 1
+
+            for month in range(12):
+                capital += current_salary * p
+                capital *= (1 + monthly_portfolio_return)
+                current_salary *= (1 + self.monthly_salary_growth)
+
+        current_pension = current_salary
+
+        for year in range(years_retired):
+            is_up_market = rng.random(num_sims) < pu
+            annual_stock_return = np.where(is_up_market, qu, qd)
+
+            annual_portfolio_return = (
+                sw_end * annual_stock_return) + ((1 - sw_end) * self.bond_return)
+            monthly_portfolio_return = (
+                1 + annual_portfolio_return)**(1/12) - 1
+
+            for month in range(12):
+                capital -= current_pension
+                capital *= (1 + monthly_portfolio_return)
+                current_pension *= (1 + self.monthly_inflation)
+
+        success_rate = np.mean(capital >= 0) * 100
+
+        return capital, success_rate
+
+    def optimize_portfolio(self, qu, qd, pu, start_weights, end_weights, target_success=95.0, num_sims=10000, verbose=False):
+        if verbose:
+            print("Starting portfolio optimization...")
+
+        absolute_best_p = 1.0
+        best_strategy = None
+
+        for sw_start in start_weights:
+            for sw_end in end_weights:
+                if sw_end > sw_start:
+                    continue
+
+                low, high = 0.01, 0.99
+                optimal_p_for_strategy = 1.0
+
+                for _ in range(8):
+                    mid_p = (low + high) / 2
+                    _, success_rate = self.run_vectorized_mc(
+                        p=mid_p, sw_start=sw_start, sw_end=sw_end,
+                        qu=qu, qd=qd, pu=pu, num_sims=num_sims
+                    )
+
+                    if success_rate >= target_success:
+                        optimal_p_for_strategy = mid_p
+                        high = mid_p
+                    else:
+                        low = mid_p
+
+                if verbose:
+                    print(
+                        f"Strategy [{sw_start*100:.0f}% -> {sw_end*100:.0f}%]: Necessary p = {optimal_p_for_strategy*100:.1f}%")
+
+                if optimal_p_for_strategy < absolute_best_p:
+                    absolute_best_p = optimal_p_for_strategy
+                    best_strategy = (sw_start, sw_end)
+
+        if verbose:
+            print("-" * 40)
+            print(f"Optimal portfolio found!")
+            print(f"Starting weight: {best_strategy[0]*100}%")
+            print(f"Retirement weight: {best_strategy[1]*100}%")
+            print(f"Minimized p: {absolute_best_p*100:.2f}%")
+
+        return absolute_best_p, best_strategy
