@@ -164,7 +164,7 @@ Aby to zobaczyć, spójrzmy na \autoref{eq:p-exact-formula}.
 Niech $S_M$ i $S_N$ oznaczają sumy odpowiednio po $j$ (od 1 do $M$) i po $k$ (od 1 do $N$).
 Wówczas $S_N = u (u^N - 1)/(u-1) \approx u^{N+1}/(u - 1)$, gdzie $u = (1+r_I) / (1+r_c) > 1$.
 Ponadto $u-1 = (r_I - r_c) / (1+r_c)$.
-Wstawiając te wyniki do \autoref{eq:p-exact-formula} dostajemy przybliżenie (dokładne dla dużych $N$)
+Wstawiając te wyniki do \autoref{eq:p-exact-formula} dostajemy przybliżenie w przypadku, gdy $r_I > r_c$ (dokładne dla dużych $N$)
 \begin{equation*}
     p \approx \frac{S_M}{1+r_\Pi}(r_I - r_c).
 \end{equation*}
@@ -222,17 +222,14 @@ Celem zbadania interakcji między wybranymi parametrami, narysowano zależność
     \label{fig:main_interaction_plots}
 \end{figure}
 Wykres na \autoref{fig:interaction_bond_inflation} ilustruje, że celem zachowania stałego $p$, inflacja i stopa zwrotu z obligacji muszą zmieniać się wspólnie (razem rosnąć lub maleć).
-Poziom 55\%
-c 3->5 r. 2
-pi 0->6 r. 6
+Dla przykładu przy stałym $p=55\%$, gdy $r_c$ zmienia się z 3\% na 5\%, $r_\Pi$ zmienia się z 0 na 6\%.
 
+Na \autoref{fig:interaction_lifespan_retirement} widzimy, że przy stałym $p$, wiek przejścia na emeryturę i czas śmierci $t_d$ są dodatnio skorelowane.
+Jeśli $p=60\%$ i $t_d$ zmienia się z 70 na 90, to $T$ zmienia się z 55 na 70.
 
-Z \autoref{fig:interaction_retirement_starting}
-Poziom 60\%
-T z 65 na 67.5 r. 2.5
-t0 z 20 na 32 r. 12
-
-\textbf{TODO} opisać \autoref{fig:interaction_lifespan_retirement}.
+Z \autoref{fig:interaction_retirement_starting} wynika, że $p$ jest utrzymane na stałym poziomie, gdy zmianie $T$ towarzyszy zmiana $t_0$ w tym samym kierunku.
+Na przykład, przy poziomie 60\%, gdy $T$ zmienia się z 65 na 67.5, $t_0$ zmienia się z 20 na 32.
+Uwidacznia to, że niewielka zmiana $T$ wymaga znacznej zmiany $t_0$.
 
 \section{Zgodność modelu z rzeczywistością}
 Niektóre z założeń modelu są nierealistyczne i podważają jego stosowalność do planowania emerytalnego:
