@@ -1,2 +1,4 @@
 __pycache__/
 .venv/
+figures/
+.DS_Store
