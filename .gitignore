@@ -2,3 +2,7 @@ __pycache__/
 .venv/
 figures/
 .DS_Store
+*.log
+*.out
+*.aux
+*.pdf
