@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{graphicx}
 \usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage[utf8]{inputenc}
 \usepackage[polish]{babel}
 \usepackage[a4paper, margin=1in]{geometry}
@@ -31,7 +32,7 @@ W projekcie przyjmujemy następujące oznaczenia:
     \item $t_0$ -- rok rozpoczęcia odkładnia na emeryturę,
     \item $T$ -- rok przejścia na emeryturę,
     \item $t_d$ -- rok śmierci,
-    $p$ -- procent pensji, jaki jest odkładany na emeryturę w każdym miesiącu (funkcja pozostałych parametrów).
+    \item $p$ -- procent pensji, jaki jest odkładany na emeryturę w każdym miesiącu (funkcja pozostałych parametrów).
 \end{enumerate}
 Początkowo zakładamy następujące wartości parametrów: $\Pi = 0.02$, $c = 0.03$, $I=0.05$, $t_0 = 0$, $T=40$, $t_d = 60$.
 Ze względu na fakt, że wyniki zależą tylko od długości okresu pracy ($T - t_0$) oraz pobierania emerytury ($t_d - T$), dokonano zmiany $t_0 \to t_0 + 25$ (i analogicznie dla pozostałych parametrów czasowych) celem łatwiejszej interpretacji wykresów.
@@ -44,7 +45,7 @@ Niech $r_\Pi$ oznacza miesięczną stopę inflacji, tj. $r_\Pi = (1+\Pi)^{1/12} 
 Analogicznie definiujemy $r_c$ i $r_I$.
 Liczba przepracowanych miesięcy to $N = (T-t_0) \cdot 12$, a liczba miesięcy przeżytych na emeryturze to $M=(t_d - T) \cdot 12$.
 
-Jeśli przez $S_0$ oznaczymy początkową pensję, to pensja w miesiącu $k$ wynosić będzie $S_0 (1+r_I)^k$.
+Jeśli przez $S_0$ oznaczymy początkową pensję, to pensja w miesiącu $k$ wynosić będzie $S_0 (1+r_I)^{k - 1}$.
 Zatem kapitał zgromadzony na potrzeby emerytury przez $N$ miesięcy pracy wyniesie
 \begin{equation*}
     W_T = \sum_{k=1}^N pS_0(1+r_I)^{k-1}(1+r_c)^{N-k+1} = pS_0\frac{(1+r_c)^{N+1}}{1+r_I}\sum_{k=1}^N \left( \frac{1+r_I}{1+r_c} \right)^k.
@@ -78,14 +79,14 @@ a wstawiając $W_T$ z \autoref{eq:WT} i rozwiązując ze względu na $p$, dostaj
     \bigg/ \sum_{k=1}^N \left( \frac{1+r_I}{1+r_c} \right)^k.
 \end{equation}
 Wstawienie wartości parametrów ze wstępu daje wynik $p = 65.1926\%$.
-Celem weryfikacji powyższego wyprowadzenia, w programie zaimplementowano również funkcję numerycznego wyznaczenia wartości $p$.
+Celem weryfikacji powyższego wyprowadzenia, w programie zaimplementowano również funkcję numerycznego wyznaczenia wartości $p$ na podstawie symulacji.
 W tym podejściu funkcja \texttt{root\_scalar} z pakietu \texttt{scipy.optimize} jest wykorzystywana do znalezienia $p$, dla którego na koniec życia nie zostają nam żadne fundusze.
 
 Obydwa podejścia dają te same wyniki, co przedstawiono na \autoref{fig:formula-vs-simulation}.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=0.5\linewidth]{figures/formula-vs-simulation.pdf}
-    \caption{Kapitał końcowy: porównanie wyników uzyskanych metodą symulacji i ze wzoru}
+    \caption{Kapitał końcowy: porównanie wyników uzyskanych metodą symulacji i ze wzoru (\ref{eq:p-exact-formula})}
     \label{fig:formula-vs-simulation}
 \end{figure}
 
@@ -157,9 +158,9 @@ Może być to w pierwszej chwili dość nieoczekiwane (wraz ze wzrostem pensji, 
 Dzieje się tak z dwu powodów.
 Po pierwsze, dla dużego $I$, ostatnia pensja jest wielokrotnie wyższa od początkowej, np. dla $I = 5\%$ po 40 latach $S_N/S_0 \approx 7$ (mamy do czynienia ze wzrostem wykładniczym).
 Oznacza to, że pobierana emerytura również będzie bardzo wysoka.
-Po drugie, pomimo, że zawsze odkładamy stały procent pensji na emeryturę, nasze zarobki stają się znaczne dopiero po długim okresie czasu (np. dla $I=5\%$, nasza pensja osiągnie dwukrotność początkowej po 14 latach, a czterokrotność po 28 -- pamiętajmy, że $T=40$).
+Po drugie, pomimo że zawsze odkładamy stały procent pensji na emeryturę, nasze zarobki stają się znaczne dopiero po długim okresie czasu (np. dla $I=5\%$, nasza pensja osiągnie dwukrotność początkowej po 14 latach, a czterokrotność po 28 -- pamiętajmy, że $T=40$).
 
-Okazuje się, że zależność $p$ od $r_I$ jest w dobrym przybliżeniu liniowa.
+Okazuje się, że jeśli $r_I > r_c$, to zależność $p$ od $r_I$ jest w dobrym przybliżeniu liniowa.
 Aby to zobaczyć, spójrzmy na \autoref{eq:p-exact-formula}.
 Niech $S_M$ i $S_N$ oznaczają sumy odpowiednio po $j$ (od 1 do $M$) i po $k$ (od 1 do $N$).
 Wówczas $S_N = u (u^N - 1)/(u-1) \approx u^{N+1}/(u - 1)$, gdzie $u = (1+r_I) / (1+r_c) > 1$.
@@ -168,6 +169,7 @@ Wstawiając te wyniki do \autoref{eq:p-exact-formula} dostajemy przybliżenie w 
 \begin{equation*}
     p \approx \frac{S_M}{1+r_\Pi}(r_I - r_c).
 \end{equation*}
+Wyjaśnia to dlaczego krzywa na \autoref{fig:salary_growth} wydaje się przechodzić w prostą dla duych wartości $r_I$.
 
 Na \autoref{fig:bond_return} widzimy, że wraz ze wzrostem stopy zwrotu $c$ z obligacji, $p$ maleje.
 Jest to oczekiwany rezultat, bowiem większe $c$ pozwala na szybszą akumulację kapitału.
@@ -189,7 +191,7 @@ Na powyższych wykresach dla niektórych wartości parametrów mamy $p > 100\%$.
 Oczywiście wynik taki nie ma sensu, jeśli założymy, że pobierana pensja to nasze jedyne źródło dochodu.
 
 \subsection{Interakcje między parametrami}
-Celem zbadania interakcji między wybranymi parametrami, narysowano zależność $p$ od tych parametrów, co przedstawiono na \autoref{fig:main_interaction_plots}.
+Celem zbadania interakcji między wybranymi parametrami, narysowano zależność $p$ od par tych parametrów, co przedstawiono na \autoref{fig:main_interaction_plots}.
 \begin{figure}[htbp]
     \centering
     % --- Row 1 ---
@@ -270,13 +272,13 @@ Podane tam wartości nie uwzględniają inflacji (figurują tam jako \textit{Ann
 \end{equation*}
 do zamiany stóp nominalnych $i$ na rzeczywiste $r$.
 Wartości stopy inflacji zostały zaczerpnięte ze strony Banku Światowego (\url{https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=US}).
-Następnie, celem wyznaczenia $p_u$ wzięto liczbę lat z dodatnią realną stopą zwrotu przez całkowitą rozważaną liczbę lat (za punkt startowy wzięto rok 1980).
+Następnie, celem wyznaczenia $p_u$ podzielono liczbę lat z dodatnią realną stopą zwrotu przez całkowitą rozważaną liczbę lat (za punkt startowy wzięto rok 1980).
 Wartości $q_u$ i $q_d$ zostały oszacowane jako średnia realna stopa zwrotu liczona dla odpowiednio lat z dodatnimi zwrotami i ujemnymi.
 Tą metodą uzyskano wartości $p_u=0.7609$, $q_u = 0.166$ i $q_d = -0.1429$.
 Daje to średnią realną stopę równą $9.2\%$ i odchylenie standardowe równe $13.2\%$.
 
 \subsection{Strategia \textit{glide path}}
-W tej części projektu przyjęto model opierający się na tzw. strategii \textit{glide path}, tj. strategii której celem jest stopniowa zmiana struktury portfela z bardziej agresywnej (akcje) na bardziej konserwatywną (obligacje) w miarę zbliżania się do określonej daty docelowej.
+W tej części projektu przyjęto model opierający się na tzw. strategii \textit{glide path}, tj. strategii której celem jest stopniowa zmiana struktury portfela z bardziej agresywnej (akcje) na bardziej konserwatywną (obligacje) w miarę zbliżania się do daty docelowej $T$.
 Dodatkowo przyjęto, że udział akcji w portfelu będzie zmniejszał się liniowo aż do czasu $T$.
 Od tego momentu skład portfela nie zmienia się.
 Zatem w modelu mamy dwa dodatkowe parametry: $w_s$ i $w_e$, obydwa między 0 i 1, które określają względny udział akcji w portfelu odpowiednio na początku i na końcu okresu zarobkowania (w czasie od $t_0$ do $T$), a nasza \textit{strategia inwestycyjna} określona jest w sumie przez trzy liczby: $p$, $w_s$ i $w_e$.
@@ -287,11 +289,12 @@ Strategię uznajemy za udaną jeśli w 95\% przeprowadzonych prób w momencie ś
 
 Celem znalezienia optymalnego $p$ przetestowano wartości 
 \begin{equation}\label{eq:ws-we-values}
-    w_s \in \{0, .7, .8, .9, 1\}, \quad w_e \in \{0, .2, .3, .4, .5\}.
+    w_s \in \{0, 0.7, 0.8, 0.9, 1\}, \quad w_e \in \{0, 0.2, 0.3, 0.4, 0.5\}.
 \end{equation}
-Dla każdej pary $(w_s, w_e)$ wyznaczono optymalną wartość $p$ (tj. najmniejszą, która prowadzi do sukcesu w 95\% przypadków).
+Dla każdej pary $(w_s, w_e)$ wyznaczono optymalną wartość $p$ (tj. najmniejszą, która prowadzi do sukcesu w 95\% przypadków; liczba rozważanych ścieżek to zawsze $10,000$).
 
 Dla rozważanych wartości parametrów, optymalną okazała się strategia z $w_s = 1$, $w_e = 0.5$ i $p=44.64\%$.
+Jak zatem widzimy, dodanie do portfela akcji pozwoliło na znaczne zredukowanie procentu $p$ pensji odkładanego co miesiąc na emeryturę.
 
 Rozkład wartości pozostałych po śmierci funduszy dla wyznaczonych parametrów przedstawia \autoref{fig:dist-final-wealth}.
 \begin{figure}[htbp]
@@ -368,7 +371,7 @@ Dodatkowo, mimo iż metoda glide path pozwala na zmniejszenie $p$, dla zbyt duż
 Porównanie \autoref{fig:optimal_savings_T_t0} z \autoref{fig:interaction_retirement_starting} pokazuje, że zastosowanie agresywnej strategii ($w_s = 0.5$, $w_e = 1$) pozwala na uzyskanie sukcesu w sytuacjach, gdzie portfel oparty o same obligacje był niewystarczający (np. pary $(T, t_0) = (50, 20), (60, 35)$).
 
 \subsection{Analiza wrażliwości na jeden parametr}
-Celem dokładniejszego poznania jak różne parametry wpływają na optymalne wartości $p$, $w_s$ i $s_e$, narysowano wykresy analogiczne do tych przedstawionych na \autoref{fig:main_impact_plots}.
+Celem dokładniejszego poznania, jak różne parametry wpływają na optymalne wartości $p$, $w_s$ i $s_e$, narysowano wykresy analogiczne do tych przedstawionych na \autoref{fig:main_impact_plots}.
 Uzyskane wykresy przedstawia \autoref{fig:main_glide_path_impact_plots}.
 \begin{figure}[htbp]
     \centering
@@ -428,25 +431,25 @@ Uzyskane wykresy przedstawia \autoref{fig:main_glide_path_impact_plots}.
 Wnioski, które można z nich wyciągnąć są podobne do tych opisanych przy okazji omawiania \autoref{fig:main_impact_plots}, zatem nie będą tutaj powtarzane.
 
 Na uwagę zasługuje fakt, że w przypadku strategii glide path uzyskane wartości $p$ są zawsze mniejsze od odpowiadających im wartości w przypadku portfela składającego się wyłącznie z obligacji.
-Również możemy stwierdzić, że dla wykorzystanej w projekcie kombinacji parametrów bazowych, jedynie zwiększenie stopy zwrotu z obligacji $c$ miało wpływ na optymalne wartości $w_s$ i $w_e$, co widać na \autoref{fig:glide_path_bond_return} (dla $c > 4\%$, ich optymalne wartości zmieniły się z $(1, 0.5)$ na $(0.7, 0.2)$).
+Również możemy stwierdzić, że dla wykorzystanej w projekcie kombinacji parametrów bazowych jedynie zwiększenie stopy zwrotu z obligacji $c$ miało wpływ na optymalne wartości $w_s$ i $w_e$, co widać na \autoref{fig:glide_path_bond_return} (dla $c > 4\%$, ich optymalne wartości zmieniły się z $(1, 0.5)$ na $(0.7, 0.2)$).
 
 \section{Podsumowanie i wnioski}
 Pomimo iż modele, które zostały rozważone w raporcie były znacznie uproszczone, pozwoliły one na wyciągnięcie kilku ważnych wniosków dotyczących planowania oszczędności emerytalnych.
 Do najważniejszych konkluzji należą:
 \begin{itemize}
-    \item \textbf{Kluczowa rola czasu (efekt procentu składanego):} Wczesne rozpoczęcie odkładania na emeryturę ($t_0$) radykalnie zmniejsza wymaganą miesięczną stopę oszczędności ($p$). Każdy rok zwłoki skutkuje drastycznym, nieliniowym wzrostem obciążenia bieżącej pensji w późniejszych latach.
-    \item \textbf{Paradoks szybkiego wzrostu wynagrodzenia:} Wysoka stopa wzrostu pensji ($I$) -- wbrew intuicji -- zmusza do odkładania większego odsetka dochodów ($p$).
+    \item Wczesne rozpoczęcie odkładania na emeryturę ($t_0$) radykalnie zmniejsza wymaganą miesięczną stopę oszczędności ($p$). Każdy rok zwłoki skutkuje drastycznym, nieliniowym wzrostem obciążenia bieżącej pensji w późniejszych latach.
+    \item Wysoka stopa wzrostu pensji ($I$) -- wbrew intuicji -- zmusza do odkładania większego odsetka dochodów ($p$).
     Wynika to z przyjętego założenia, że wypłacana emerytura ma być równa co najmniej ostatniej pensji.
     Przy wykładniczym wzroście płac pod koniec kariery, kapitał zgromadzony z początkowych, niskich składek staje się relatywnie marginalny w stosunku do oczekiwanej, wysokiej emerytury.
-    \item \textbf{Wpływ czynników makroekonomicznych:} Model wykazuje ogromną wrażliwość na realną stopę zwrotu z obligacji ($c$) oraz inflację ($\Pi$).
+    \item Model wykazuje znaczą wrażliwość na realną stopę zwrotu z obligacji ($c$) oraz inflację ($\Pi$).
     Aby utrzymać stałą stopę oszczędności, parametry te muszą rosnąć lub maleć korelując ze sobą –- w przeciwnym wypadku wysoka inflacja bez adekwatnego wzrostu rentowności bezpiecznych aktywów prowadzi do matematycznej niemożliwości sfinansowania emerytury ($p > 100\%$).
-    \item \textbf{Przewaga strategii (\textit{glide path}):} Wprowadzenie do portfela komponentu akcyjnego (indeksu giełdowego) znacząco poprawia efektywność modelu.
+    \item Wprowadzenie do portfela komponentu akcyjnego (indeksu giełdowego) znacząco poprawia efektywność modelu.
     Optymalna strategia oparta na liniowej redukcji ryzyka ($w_s = 1 \to w_e = 0.5$) pozwoliła na obniżenie wymaganej stopy oszczędności z bazowych $65.19\%$ (dla samych obligacji) do znacznie bardziej realistycznego poziomu $44.64\%$, przy zachowaniu $95\%$ prawdopodobieństwa sukcesu.
-    \item \textbf{Cena bezpieczeństwa a elastyczność struktury:} Portfel oparty wyłącznie o obligacje cechuje się zero-jedynkową funkcją sukcesu (sztywny próg rentowności).
+    \item Portfel oparty wyłącznie o obligacje cechuje się zero-jedynkową funkcją sukcesu.
     Włączenie instrumentów o charakterze stochastycznym (akcje) wygładza tę funkcję, dając inwestorowi elastyczność i możliwość świadomego dopasowania stopy oszczędności do własnej awersji do ryzyka, co odzwierciedla rozkład lognormalny końcowych funduszy z długim, korzystnym prawym ogonem.
 \end{itemize}
 
-W ramach dalszego rozwoju projektu, naturalnym krokiem byłoby odejście od modeli deterministycznych w sekcji obligacji na rzecz symulacji stochastycznych (np. procesów CIR lub Vasiceka dla stóp procentowych) oraz modelowanie czasu przeżycia ($t_d$) za pomocą tablic trwania życia.
+W ramach dalszego rozwoju projektu, naturalnym krokiem byłoby odejście od modeli deterministycznych w sekcji obligacji na rzecz symulacji stochastycznych (np. proces Vasiceka dla stóp procentowych) oraz modelowanie probabilistyczne czasu przeżycia ($t_d$).
 Pozwoliłoby to na jeszcze lepsze odzwierciedlenie realiów rynkowych i demograficznych.
 
 \end{document}

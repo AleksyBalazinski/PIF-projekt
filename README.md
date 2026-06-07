@@ -1,6 +1,6 @@
-# Project for the "Podstaowe instrumenty finansowe" (_Basic financial instruments_) course 
+# Project for the _Basic financial instruments_  ("Podstaowe instrumenty finansowe") course 
 
-## Requirements installation
+## Install required packages
 ```sh
 pip install -r requirements.txt
 ```
@@ -10,7 +10,9 @@ pip install -r requirements.txt
 * Inflation data: [World Bank Group](https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG?locations=US)
 
 ## PDF report compilation
+Run the notebook `analysis.ipynb` first to generate figures.
 ```sh
+cp -r figures PIF-raport/
 cd PIF-raport
-pdflatex.tex
+pdflatex main.tex
 ```
